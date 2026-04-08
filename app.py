@@ -23,17 +23,20 @@ def get_ai_response(message):
     }
 
     try:
-        for _ in range(2):  # retry 2 times
-            response = requests.post(url, headers=headers, json=payload, timeout=15)
-            data = response.json()
+        response = requests.post(url, headers=headers, json=payload, timeout=20)
+        data = response.json()
 
-            if isinstance(data, list):
-                return data[0]["generated_text"]
+        # 🔥 Handle loading case
+        if isinstance(data, dict) and "error" in data:
+            return "AI is starting up... wait 10 seconds and try again."
 
-        return "AI is warming up... try again in a few seconds."
+        if isinstance(data, list):
+            return data[0]["generated_text"]
+
+        return "Unexpected response, try again."
 
     except Exception:
-        return "AI is busy right now."
+        return "AI not responding right now."
 
 # 🌐 Health check
 @app.route("/", methods=["GET"])
