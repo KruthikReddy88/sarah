@@ -3,7 +3,7 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-TOKEN = "8676101702:AAECSTBZuVLBcp3zmIR9r4_q-m7gNaMhqXc"
+TOKEN = "8645374295:AAFWk0wDoFJBZEbIZZACSWnxhVW0esetJ9Y"
 TELEGRAM_URL = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
 
 def get_ai_response(message):
