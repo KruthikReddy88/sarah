@@ -1,18 +1,21 @@
 import requests
+import os
 from flask import Flask, request
 
 app = Flask(__name__)
 
-TOKEN = "8645374295:AAFWk0wDoFJBZEbIZZACSWnxhVW0esetJ9Y"
+# 🔐 Secure environment variables
+TOKEN = os.environ.get("TELEGRAM_TOKEN")
+HF_API_KEY = os.environ.get("HF_API_KEY")
+
 TELEGRAM_URL = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
 
-import requests
-
+# 🧠 AI Response
 def get_ai_response(message):
     url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
-    
+
     headers = {
-        "Authorization": "Bearer YOUR_HUGGINGFACE_API_KEY"
+        "Authorization": f"Bearer {HF_API_KEY}"
     }
 
     payload = {
@@ -26,15 +29,17 @@ def get_ai_response(message):
         if isinstance(data, list):
             return data[0]["generated_text"]
         else:
-            return "Error getting response."
+            return "AI is loading... try again."
 
     except Exception as e:
         return "AI is busy, try again."
 
+# 🌐 Health check
 @app.route("/", methods=["GET"])
 def home():
     return "Jarvis is running!"
 
+# 🤖 Telegram webhook
 @app.route("/", methods=["POST"])
 def webhook():
     data = request.json
@@ -45,9 +50,13 @@ def webhook():
 
         reply = get_ai_response(text)
 
-        requests.post(TELEGRAM_URL, json={
-            "chat_id": chat_id,
-            "text": reply
-        })
+        requests.post(
+            TELEGRAM_URL,
+            json={
+                "chat_id": chat_id,
+                "text": reply
+            },
+            timeout=5
+        )
 
     return "ok"
