@@ -11,6 +11,8 @@ HF_API_KEY = os.environ.get("HF_API_KEY")
 TELEGRAM_URL = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
 
 # 🧠 AI Response
+import time
+
 def get_ai_response(message):
     url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
 
@@ -23,17 +25,19 @@ def get_ai_response(message):
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=20)
-        data = response.json()
+        for attempt in range(5):  # 🔥 try 5 times
+            response = requests.post(url, headers=headers, json=payload, timeout=20)
+            data = response.json()
 
-        # 🔥 Handle loading case
-        if isinstance(data, dict) and "error" in data:
-            return "AI is starting up... wait 10 seconds and try again."
+            # If model still loading
+            if isinstance(data, dict) and "error" in data:
+                time.sleep(5)  # wait before retry
+                continue
 
-        if isinstance(data, list):
-            return data[0]["generated_text"]
+            if isinstance(data, list):
+                return data[0]["generated_text"]
 
-        return "Unexpected response, try again."
+        return "AI is still loading. Try again in a minute."
 
     except Exception:
         return "AI not responding right now."
